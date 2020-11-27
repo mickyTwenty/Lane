@@ -26,6 +26,9 @@ class App:
     def __init__(self):
         self._Settings = AppSettings()
 
+        self.USER_NAME = 'admin'
+        self.USER_PASSWORD = 'Versatronics' + self.getDateTimeStamp('%d%m%y')
+
         self.APP_NAME = 'Versatronics Pty Ltd - Image Reviewer'
 
         self.img_path = './data/images/'

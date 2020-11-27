@@ -21,7 +21,7 @@ from reviewwidget import ReviewWidget
 class SignalTrigger(QObject):
     # Define a new signal called 'trigger' that has no arguments.
     signal_item_loaded = pyqtSignal(int)
-    signal_item_reviewed = pyqtSignal(int, str, str)
+    signal_item_reviewed = pyqtSignal(int, str, str, str)
 
 
 class MainWidget(QtWidgets.QWidget):
@@ -80,8 +80,8 @@ class MainWidget(QtWidgets.QWidget):
     def itemLoaded(self, index):
         self.signals.signal_item_loaded.emit(index)
 
-    def itemReviewed(self, index, review, color):
-        self.signals.signal_item_reviewed.emit(index, review, color)
+    def itemReviewed(self, index, review, plate, color):
+        self.signals.signal_item_reviewed.emit(index, review, plate, color)
 
     def on_btnImport1_clicked(self):
         fname, _ = QFileDialog.getOpenFileName(self, 'Open File', './data', 'Data files (*.PTD)')
@@ -267,9 +267,10 @@ class MainWidget(QtWidgets.QWidget):
     def setLoadedItem(self, index):
         self.table.selectRow(index)
 
-    @QtCore.pyqtSlot(int, str, str)
-    def setReviewedItem(self, index, review, color):
+    @QtCore.pyqtSlot(int, str, str, str)
+    def setReviewedItem(self, index, review, plate, color):
         self.table.setItem(index, 14, QTableWidgetItem(review))
+        self.table.setItem(index, 15, QTableWidgetItem(plate))
         self.setColortoRow(self.table, index, color)
 
     def setColortoRow(self, table, rowIndex, color):
@@ -395,7 +396,7 @@ class MainWidget(QtWidgets.QWidget):
             worksheet.set_column('E:H', 10)
             worksheet.set_column('I:I', 65)
             worksheet.set_column('J:J', 25)
-            worksheet.set_column('K:L', 15)
+            worksheet.set_column('K:M', 15)
 
             worksheet.write('A1', '#', header)
             worksheet.write('B1', 'Ticket Number', header)
@@ -409,6 +410,7 @@ class MainWidget(QtWidgets.QWidget):
             worksheet.write('J1', 'Date Edited', header)
             worksheet.write('K1', 'Attendance', header)
             worksheet.write('L1', 'Review', header)
+            worksheet.write('M1', 'Correct Plate', header)
 
             for i, row in enumerate(self.report_data1):
                 worksheet.write('A{}'.format(2 + i), str(i + 1), style1)
@@ -423,6 +425,7 @@ class MainWidget(QtWidgets.QWidget):
                 worksheet.write('J{}'.format(2 + i), row[8], style4)
                 worksheet.write('K{}'.format(2 + i), row[9], style4)
                 worksheet.write('L{}'.format(2 + i), row[10], style4)
+                worksheet.write('M{}'.format(2 + i), row[11], style4)
 
             worksheet.freeze_panes(1, 0)
 
@@ -554,28 +557,29 @@ class MainWidget(QtWidgets.QWidget):
 
             # PDF Table - Column Widths
             colWidths1 = [
-                4.7 * cm,  # Column 0
-                5.5 * cm,  # Column 1
-                6.0 * cm,  # Column 2
-                1.5 * cm,  # Column 3
-                2.5 * cm,  # Column 4
-                2.5 * cm,  # Column 5
+                4.5 * cm,  # Column 0
+                5.3 * cm,  # Column 1
+                5.8 * cm,  # Column 2
+                1.4 * cm,  # Column 3
+                1.9 * cm,  # Column 4
+                2.0 * cm,  # Column 5
                 3.0 * cm,  # Column 6
                 10.0 * cm,  # Column 7
-                5.0 * cm,  # Column 8
-                2.5 * cm,  # Column 9
-                3.5 * cm,  # Column 10
+                4.8 * cm,  # Column 8
+                2.3 * cm,  # Column 9
+                3.3 * cm,  # Column 10
+                1.8 * cm,  # Column 11
             ]
             
             elements.append(Spacer(inch, .25 * inch))
-            t1 = Table([['Ticket Number', 'Ticket Typ', 'Date', 'Lane ID', 'Rego Result', 'Confident', 'Corrected\nPlate', 'Image Path', 'Date Edited', 'Attendance', 'Review']] + self.report_data1, colWidths=colWidths1)
+            t1 = Table([['Ticket Number', 'Ticket Typ', 'Date', 'Lane ID', 'Rego\nResult', 'Confident', 'Corrected\nPlate', 'Image Path', 'Date Edited', 'Attendance', 'Review', 'Correct Plate']] + self.report_data1, colWidths=colWidths1)
             t1.setStyle(table_style1)
             elements.append(t1)
 
             # Generate PDF
             archivo_pdf = SimpleDocTemplate(
                 fname,
-                pagesize = landscape((18*inch, 8.5*inch)),
+                pagesize = landscape((20*inch, 8.5*inch)),
                 rightMargin = 40,
                 leftMargin = 40,
                 topMargin = 40,

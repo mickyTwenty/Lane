@@ -69,17 +69,17 @@ class DBHelper():
             self.mutex.unlock()
             return row, rowid
 
-    def set_item_review(self, data, review, rowid):
+    def set_item_review(self, data, review, plate, rowid):
         try:
             self.mutex.lock()
             cur = self.conn.cursor()
 
             if rowid == -1:
-                data.extend([review, _App.getDateTimeStamp("%m/%d/%Y %H:%M:%S"), _App.getDateTimeStamp("%m/%d/%Y %H:%M:%S")])
-                rowid = cur.execute("INSERT INTO tbl_datas(TICKET_NO, TICKET_TYPE, DATE1, DATE2, LANE_ID, LANE_NAME, LANE_TYPE, REGO_RESULT, CONFIDENT, CORRECTED_PLATE, IMAGE_PATH1, IMAGE_PATH2, DATE_EDITED, ATTENDANCE, REVIEW_STATE, CREATE_DATE, REVIEW_DATE) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", data)
+                data.extend([review, plate, _App.getDateTimeStamp("%m/%d/%Y %H:%M:%S"), _App.getDateTimeStamp("%m/%d/%Y %H:%M:%S")])
+                rowid = cur.execute("INSERT INTO tbl_datas(TICKET_NO, TICKET_TYPE, DATE1, DATE2, LANE_ID, LANE_NAME, LANE_TYPE, REGO_RESULT, CONFIDENT, CORRECTED_PLATE, IMAGE_PATH1, IMAGE_PATH2, DATE_EDITED, ATTENDANCE, REVIEW_STATE, CORRECT_PLATE, CREATE_DATE, REVIEW_DATE) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", data)
             else:
                 #data.extend([review, _App.getDateTimeStamp("%m/%d/%Y %H:%M:%S")])
-                cur.execute("UPDATE tbl_datas SET REVIEW_STATE=:REVIEW, REVIEW_DATE=:DATE WHERE ID=:ID", {"REVIEW": review, "DATE": _App.getDateTimeStamp("%m/%d/%Y %H:%M:%S"), "ID": rowid})
+                cur.execute("UPDATE tbl_datas SET REVIEW_STATE=:REVIEW, CORRECT_PLATE=:PLATE, REVIEW_DATE=:DATE WHERE ID=:ID", {"REVIEW": review, "PLATE": plate, "DATE": _App.getDateTimeStamp("%m/%d/%Y %H:%M:%S"), "ID": rowid})
 
             self.conn.commit()
         except Error as e:
@@ -114,7 +114,7 @@ class DBHelper():
                 overall += acc
                 data.append([lane_id[1], '', '', lane_id[0], '{}%'.format(acc), d[0], d[1] + d[2], d[1], d[2], d[3], d[4], d[5]])
 
-                cur.execute("SELECT ticket_no, ticket_type, date1, lane_id, rego_result, confident, corrected_plate, image_path1, date_edited, attendance, rv.review FROM tbl_datas LEFT JOIN tbl_review_code rv ON tbl_datas.review_state = rv.id WHERE lane_id=:LANE_ID {} ORDER BY date1".format(where_date), {"LANE_ID": lane_id[0]})
+                cur.execute("SELECT ticket_no, ticket_type, date1, lane_id, rego_result, confident, corrected_plate, image_path1, date_edited, attendance, rv.review, correct_plate FROM tbl_datas LEFT JOIN tbl_review_code rv ON tbl_datas.review_state = rv.id WHERE lane_id=:LANE_ID {} ORDER BY date1".format(where_date), {"LANE_ID": lane_id[0]})
                 d = cur.fetchall()
                 data1.extend(d)
             
@@ -134,7 +134,7 @@ class DBHelper():
             self.mutex.lock()
             cur = self.conn.cursor()
 
-            cur.execute("SELECT ticket_no, ticket_type, date1, lane_id, rego_result, confident, corrected_plate, image_path1, date_edited, attendance, rv.review FROM tbl_datas LEFT JOIN tbl_review_code rv ON tbl_datas.review_state = rv.id WHERE lane_id=:LANE_ID {} ORDER BY date1".format(where_date), {"LANE_ID": lane_id})
+            cur.execute("SELECT ticket_no, ticket_type, date1, lane_id, rego_result, confident, corrected_plate, image_path1, date_edited, attendance, rv.review, correct_plate FROM tbl_datas LEFT JOIN tbl_review_code rv ON tbl_datas.review_state = rv.id WHERE lane_id=:LANE_ID {} ORDER BY date1".format(where_date), {"LANE_ID": lane_id})
             data = cur.fetchall()
 
         except Error as e:

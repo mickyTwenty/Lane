@@ -8,6 +8,7 @@ from config import _App
 
 from dbhelper import _DB
 
+from logindlg import LoginDialog
 from mainwidget import MainWidget
 from reviewwidget import ReviewWidget
 
@@ -46,7 +47,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.currentWidget = CurrentWidget.MAIN_WIDGET
         self.mainStacked.setCurrentIndex(self.currentWidget.value)
 
-
     '''
     def setReviewWidget(self):
         self.currentWidget = CurrentWidget.REVIEW_WIDGET
@@ -68,9 +68,18 @@ class MainWindow(QtWidgets.QMainWindow):
             _App._Settings.save()
 
             event.accept()
+    
+def confirmLogin(self, username, password):
+    return True
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
+    '''
+    login = LoginDialog()
+    login.show()
+    if login.exec_() == QtWidgets.QDialog.Rejected:
+        sys.exit()
+    '''
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())

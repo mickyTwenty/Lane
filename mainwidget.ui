@@ -248,6 +248,11 @@
            <string>Review</string>
           </property>
          </column>
+         <column>
+          <property name="text">
+           <string>Correct Plate</string>
+          </property>
+         </column>
         </widget>
        </item>
       </layout>
@@ -643,6 +648,11 @@
          <column>
           <property name="text">
            <string>Review</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Correct Plate</string>
           </property>
          </column>
         </widget>

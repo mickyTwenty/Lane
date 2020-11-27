@@ -1,13 +1,14 @@
 import os
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QInputDialog
 from pathlib import Path
 from shutil import copyfile, copy
 
 from config import _App
 from dbhelper import _DB
 
-subdirs = ['Correct', 'Incorrect']
+subdirs = ['Correct', 'Incorrect', 'Flase', 'Damaged']
 
 class ReviewWidget(QtWidgets.QDialog):
     def __init__(self, MainWidget):
@@ -103,9 +104,12 @@ class ReviewWidget(QtWidgets.QDialog):
             review_str = _App.REVIEW_STR[item_data[15]]
             review_style = _App.REVIEW_STYLE[item_data[15]]
             review_color = _App.REVIEW_COLOR[item_data[15]]
-            self.lblReview.setText(review_str)
+            if item_data[15] == 1:
+                self.lblReview.setText(item_data[16])
+            else:
+                self.lblReview.setText(review_str)
             self.lblReview.setStyleSheet(review_style)
-            self.MainWidget.itemReviewed(self._index, review_str, review_color)
+            self.MainWidget.itemReviewed(self._index, review_str, item_data[16], review_color)
 
             if len(self._data[self._index]) == 14:
                 self.updateLanes(item_data[5])
@@ -157,7 +161,11 @@ class ReviewWidget(QtWidgets.QDialog):
             self.loadNextItem()
 
     def on_btnSetValue2_clicked(self):
-        if self.setReview(1) is True:
+        correct_plate, ok = QInputDialog.getText(self, 'Correct Plate', 'Input Correct Plate')
+        if ok is False:
+            return
+
+        if self.setReview(1, correct_plate) is True:
             self.loadNextItem()
 
     def on_btnSetValue3_clicked(self):
@@ -168,7 +176,7 @@ class ReviewWidget(QtWidgets.QDialog):
         if self.setReview(3) is True:
             self.loadNextItem()
 
-    def setReview(self, value):
+    def setReview(self, value, plate = ''):
         item = self._data[self._index]
         if item is None:
             return False
@@ -176,7 +184,9 @@ class ReviewWidget(QtWidgets.QDialog):
         if self._rowid != -1 and self._item[15] == value:
             return True
 
-        if self._rowid != -1 and ( self._item[15] == 0  or self._item[15] == 1 ) :
+        ### export False and Damaged folder too
+        #if self._rowid != -1 and ( self._item[15] == 0  or self._item[15] == 1 ):
+        if self._rowid != -1:
             path1 = '/Lane{}/{}/'.format(item[4], subdirs[self._item[15]]) + os.path.basename(self._item[11])
             path2 = '/Lane{}/{}/'.format(item[4], subdirs[self._item[15]]) + os.path.basename(self._item[12])
 
@@ -185,31 +195,38 @@ class ReviewWidget(QtWidgets.QDialog):
 
             if self._item[12] != '' and os.path.exists(_App.review_path + path2):
                 os.remove(_App.review_path + path2)
+        
                 
-        _DB.set_item_review(item, value, self._rowid)
+        _DB.set_item_review(item, value, plate, self._rowid)
 
         if self._rowid == -1:
             self.updateLanes(item[4])
             self._data[self._index].append(True)
 
-        if value == 0 or value == 1:
-            target_dir = '/Lane{}/{}'.format(item[4], subdirs[value])
+        #### export False and Damaged folder too
+        #if value == 0 or value == 1:
+        target_dir = '/Lane{}/{}'.format(item[4], subdirs[value])
 
-            #if os.path.exists(_App.review_path + target_dir) is False:
-            Path(_App.review_path + target_dir).mkdir(parents=True, exist_ok=True)
+        #if os.path.exists(_App.review_path + target_dir) is False:
+        Path(_App.review_path + target_dir).mkdir(parents=True, exist_ok=True)
 
-            if self.imgfile1 != ''  and os.path.exists(_App.img_path + self.imgfile1):
-                copy(_App.img_path + self.imgfile1, _App.review_path + target_dir)
+        if self.imgfile1 != ''  and os.path.exists(_App.img_path + self.imgfile1):
+            copy(_App.img_path + self.imgfile1, _App.review_path + target_dir)
 
-            if self.imgfile2 != ''  and os.path.exists(_App.img_path + self.imgfile2):
-                copy(_App.img_path + self.imgfile2, _App.review_path + target_dir)
+        if self.imgfile2 != ''  and os.path.exists(_App.img_path + self.imgfile2):
+            copy(_App.img_path + self.imgfile2, _App.review_path + target_dir)
+        #####
+        
 
         review_str = _App.REVIEW_STR[value]
         review_style = _App.REVIEW_STYLE[value]
         review_color = _App.REVIEW_COLOR[value]
-        self.lblReview.setText(review_str)
+        if value == 1:
+            self.lblReview.setText(plate)
+        else:
+            self.lblReview.setText(review_str)
         self.lblReview.setStyleSheet(review_style)
-        self.MainWidget.itemReviewed(self._index, review_str, review_color)
+        self.MainWidget.itemReviewed(self._index, review_str, plate, review_color)
 
         
         return True
