@@ -30,12 +30,12 @@
     <rect>
      <x>30</x>
      <y>10</y>
-     <width>101</width>
+     <width>151</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>Server</string>
+    <string>Download images from:</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="editServer">
@@ -269,12 +269,12 @@
     <rect>
      <x>30</x>
      <y>92</y>
-     <width>47</width>
+     <width>171</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>Download</string>
+    <string>Save images to:</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="editDownload">

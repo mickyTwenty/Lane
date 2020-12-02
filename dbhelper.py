@@ -110,7 +110,9 @@ class DBHelper():
                     (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE lane_id=:LANE_ID AND review_state == 3 " + where_date + ") as t5, \
                     (SELECT review_date AS date FROM tbl_datas WHERE lane_id=:LANE_ID " + where_date + " ORDER BY review_date DESC LIMIT 1) as t6", {"LANE_ID": lane_id[0]})
                 d = cur.fetchone()
-                acc = round(d[1] / (d[1] + d[2]) * 100, 2)
+                acc = 0
+                if d[1] != 0 or d[2] != 0:
+                    acc = round(d[1] / (d[1] + d[2]) * 100, 2)
                 overall += acc
                 data.append([lane_id[1], '', '', lane_id[0], '{}%'.format(acc), d[0], d[1] + d[2], d[1], d[2], d[3], d[4], d[5]])
 
@@ -125,6 +127,46 @@ class DBHelper():
         finally:
             self.mutex.unlock()
             return data, overall, data1
+
+    
+    def get_report_lane(self, lane_id):
+        data = []
+        data1 = []
+        overall = 0
+
+        #where_date = " and date1 > '{}' and date2 < '{}'".format(date_from, date_to)
+        try:
+            self.mutex.lock()
+            cur = self.conn.cursor()
+
+            cur.execute("SELECT lane_name, review_date from tbl_datas WHERE lane_id=:LANE_ID ORDER BY review_date DESC LIMIT 1", {"LANE_ID": lane_id})
+            lane_info = cur.fetchone()
+            lane_name = lane_info[0]
+            review_date = lane_info[1][:10]
+
+            where_clause = " lane_id={} and SUBSTR(review_date, 1, 10)='{}' ORDER BY review_date DESC LIMIT 250 ".format(lane_id, review_date)
+
+            cur.execute("SELECT t1.cnt, t2.cnt, t3.cnt, t4.cnt, t5.cnt FROM \
+                    (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE " + where_clause + ") as t1, \
+                    (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE review_state == 0 AND " + where_clause + ") as t2, \
+                    (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE review_state == 1 AND " + where_clause + ") as t3, \
+                    (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE review_state == 2 AND " + where_clause + ") as t4, \
+                    (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE review_state == 3 AND " + where_clause + ") as t5")
+            d = cur.fetchone()
+            if d[1] != 0 or d[2] != 0:
+                overall = round(d[1] / (d[1] + d[2]) * 100, 2)
+            data.append([lane_name, '', '', lane_id, '{}%'.format(overall), d[0], d[1] + d[2], d[1], d[2], d[3], d[4], review_date])
+
+            cur.execute("SELECT ticket_no, ticket_type, date1, lane_id, rego_result, confident, corrected_plate, image_path1, date_edited, attendance, rv.review, correct_plate FROM tbl_datas LEFT JOIN tbl_review_code rv ON tbl_datas.review_state = rv.id WHERE " + where_clause)
+            d = cur.fetchall()
+            data1.extend(d)
+
+        except Error as e:
+            print(e)
+        finally:
+            self.mutex.unlock()
+            return data, overall, data1
+    
 
     def get_reviewed_data(self, lane_id, date_from, date_to):
         data = []

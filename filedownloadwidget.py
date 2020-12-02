@@ -94,6 +94,8 @@ class FileDownloadWidget(QtWidgets.QDialog):
         zip_file = zipfile.ZipFile(zip_filepath, 'w')
 
         self.progressBar.setMaximum(len(checked_lanes))
+
+        QtWidgets.QApplication.processEvents()
         
         for i, lane in enumerate(checked_lanes):
             path = '/{}{}'.format(lane, sub_path)

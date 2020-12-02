@@ -58,6 +58,7 @@ class MainWidget(QtWidgets.QWidget):
 
             # Report Widget
             self.btnRefresh.clicked.disconnect()
+            self.btnReviewLane.clicked.disconnect()
             self.btnExport1.clicked.disconnect()
             self.btnExport2.clicked.disconnect()
         except:
@@ -71,6 +72,7 @@ class MainWidget(QtWidgets.QWidget):
         self.table.cellDoubleClicked.connect(self.on_table_doubleclicked)
 
         self.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
+        self.btnReviewLane.clicked.connect(self.on_btnReviewLane_clicked)
         self.btnExport1.clicked.connect(self.on_btnExport1_clicked)
         self.btnExport2.clicked.connect(self.on_btnExport2_clicked)
         self.table1.itemClicked.connect(self.on_table1_clicked)
@@ -306,13 +308,45 @@ class MainWidget(QtWidgets.QWidget):
                 self.table2.setItem(i, j, titem)
 
         self.table2.resizeColumnsToContents()
+
+    def on_btnReviewLane_clicked(self):
+        lane_id, ok = QInputDialog.getText(self, 'Review', 'Input Lane ID')
+
+        if ok is False or lane_id == '':
+            return
+        
+        self.report_data, self.overall, self.report_data1 = _DB.get_report_lane(lane_id)
+
+        self.lblOverall.setText('{:.2f}%'.format(self.overall))
+
+        self.table1.setRowCount(0)
+        self.table1.setRowCount(len(self.report_data))
+
+        for i, row in enumerate(self.report_data):
+            for j, item in enumerate(row):
+                titem = QTableWidgetItem(str(item))
+                if j > 3:
+                    titem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+                self.table1.setItem(i, j, titem)
+        
+        self.table2.setRowCount(0)
+        self.table2.setRowCount(len( self.report_data1))
+
+        for i, row in enumerate( self.report_data1):
+            for j, item in enumerate(row):
+                titem = QTableWidgetItem(str(item))
+                self.table2.setItem(i, j, titem)
+
+        self.table2.resizeColumnsToContents()
+        
     
     def on_table1_clicked(self, item):
         lane_id = self.table1.item(item.row(), 3).text()
         date1 = self.editDate1.date().toString('yyyy-MM-dd')
         date2 = self.editDate2.date().addDays(1).toString('yyyy-MM-dd')
 
-        data = _DB.get_reviewed_data(lane_id, date1, date2)
+        #data = _DB.get_reviewed_data(lane_id, date1, date2)
+        data = [item for item in self.report_data1 if item[3] == lane_id]
 
         self.table2.setRowCount(0)
         self.table2.setRowCount(len(data))

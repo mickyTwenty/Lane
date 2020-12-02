@@ -80,6 +80,7 @@ if __name__ == "__main__":
     login.show()
     if login.exec_() == QtWidgets.QDialog.Rejected:
         sys.exit()
+    
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
