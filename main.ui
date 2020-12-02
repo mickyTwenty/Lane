@@ -42,8 +42,15 @@
     </property>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuDownload">
+    <property name="title">
+     <string>Download</string>
+    </property>
+    <addaction name="actionDownloadFiles"/>
+   </widget>
    <addaction name="menuRile"/>
    <addaction name="menuDB"/>
+   <addaction name="menuDownload"/>
   </widget>
   <action name="actionExit">
    <property name="text">
@@ -58,6 +65,11 @@
   <action name="actionDbClearAll">
    <property name="text">
     <string>Clear All</string>
+   </property>
+  </action>
+  <action name="actionDownloadFiles">
+   <property name="text">
+    <string>Image files</string>
    </property>
   </action>
  </widget>

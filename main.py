@@ -38,6 +38,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionExit.triggered.connect(self.close)
         self.actionDbClear.triggered.connect(self.mainwidget.on_dbclear_triggered)
         self.actionDbClearAll.triggered.connect(self.mainwidget.on_dbclearall_triggerd)
+        self.actionDownloadFiles.triggered.connect(self.mainwidget.on_downloadfiles_triggered)
 
         self.setMainWidget()
 
@@ -74,12 +75,11 @@ def confirmLogin(self, username, password):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    '''
+    
     login = LoginDialog()
     login.show()
     if login.exec_() == QtWidgets.QDialog.Rejected:
         sys.exit()
-    '''
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())

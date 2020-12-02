@@ -17,6 +17,7 @@ from config import _App
 from dbhelper import _DB
 
 from reviewwidget import ReviewWidget
+from filedownloadwidget import FileDownloadWidget
 
 class SignalTrigger(QObject):
     # Define a new signal called 'trigger' that has no arguments.
@@ -31,6 +32,7 @@ class MainWidget(QtWidgets.QWidget):
 
         self.MainWindow = MainWindow
         self.ReviewDlg = ReviewWidget(self)
+        self.DownloadDlg = FileDownloadWidget(self)
 
         self.tabWidget.setCurrentIndex(0)
 
@@ -605,6 +607,9 @@ class MainWidget(QtWidgets.QWidget):
         print('Clear All Db')
         _DB.clear_db()
         QMessageBox.information(self, 'DB', 'Success to clear all')
+
+    def on_downloadfiles_triggered(self):
+        self.DownloadDlg.exec_()
         
 
 class DateDialog(QDialog):

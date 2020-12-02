@@ -7,6 +7,9 @@ global _App
 
 class AppSettings:
     def __init__(self):
+        self.SERVER_DIR = ''
+        self.DOWNLOAD_DIR = ''
+
         self.load()
     
     def load(self):
@@ -15,9 +18,16 @@ class AppSettings:
 
         config.read(config_file)
 
+        self.SERVER_DIR = config['Settings']['SERVER_DIR']
+        self.DOWNLOAD_DIR = config['Settings']['DOWNLOAD_DIR']
+
     def save(self):
         print('saving config.ini...')
         config = configparser.RawConfigParser()
+
+        config.add_section('Settings')
+        config.set('Settings', 'SERVER_DIR', self.SERVER_DIR)
+        config.set('Settings', 'DOWNLOAD_DIR', self.DOWNLOAD_DIR)
 
         with open(config_file, 'w') as configfile:
             config.write(configfile)
@@ -54,6 +64,8 @@ class App:
             '#4047cb',
             '#0b9ad6',
         ]
+
+
 
     def getDateTimeStamp(self, format):
         now = datetime.now()
