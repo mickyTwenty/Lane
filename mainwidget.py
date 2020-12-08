@@ -181,7 +181,7 @@ class MainWidget(QtWidgets.QWidget):
         if len(self._data) == 0:
             return
 
-        count, ok = QInputDialog.getInt(self, 'Random', 'Input count of entries', 200)
+        count, ok = QInputDialog.getInt(self, 'Random', 'Input count of entries', _App._Settings.REVIEW_COUNT)
 
         if ok is False or count == 0:
             return
@@ -644,6 +644,16 @@ class MainWidget(QtWidgets.QWidget):
 
     def on_downloadfiles_triggered(self):
         self.DownloadDlg.exec_()
+
+    def on_reviewcount_triggered(self):
+        count, ok = QInputDialog.getInt(self, 'Review Count', 'Please set the number of images to be reviewed.', _App._Settings.REVIEW_COUNT)
+
+        if ok is False or count <= 0:
+            return
+
+        _App._Settings.REVIEW_COUNT = count
+
+
         
 
 class DateDialog(QDialog):

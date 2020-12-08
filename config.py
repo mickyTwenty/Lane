@@ -3,12 +3,16 @@ from datetime import datetime
 
 config_file = 'config.ini'
 
+default_review_count = 250
+
 global _App
 
 class AppSettings:
     def __init__(self):
         self.SERVER_DIR = ''
         self.DOWNLOAD_DIR = ''
+
+        self.REVIEW_COUNT = default_review_count
 
         self.load()
     
@@ -21,6 +25,10 @@ class AppSettings:
         self.SERVER_DIR = config['Settings']['SERVER_DIR']
         self.DOWNLOAD_DIR = config['Settings']['DOWNLOAD_DIR']
 
+        self.REVIEW_COUNT = config['Settings'].getint('REVIEW_COUNT')
+        if self.REVIEW_COUNT is None:
+            self.REVIEW_COUNT = default_review_count
+
     def save(self):
         print('saving config.ini...')
         config = configparser.RawConfigParser()
@@ -28,6 +36,8 @@ class AppSettings:
         config.add_section('Settings')
         config.set('Settings', 'SERVER_DIR', self.SERVER_DIR)
         config.set('Settings', 'DOWNLOAD_DIR', self.DOWNLOAD_DIR)
+
+        config.set('Settings', 'REVIEW_COUNT', self.REVIEW_COUNT)
 
         with open(config_file, 'w') as configfile:
             config.write(configfile)

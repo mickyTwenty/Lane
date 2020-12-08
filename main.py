@@ -39,6 +39,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionDbClear.triggered.connect(self.mainwidget.on_dbclear_triggered)
         self.actionDbClearAll.triggered.connect(self.mainwidget.on_dbclearall_triggerd)
         self.actionDownloadFiles.triggered.connect(self.mainwidget.on_downloadfiles_triggered)
+        self.actionReviewCount.triggered.connect(self.mainwidget.on_reviewcount_triggered)
 
         self.setMainWidget()
 
@@ -75,6 +76,7 @@ def confirmLogin(self, username, password):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
+    
     
     login = LoginDialog()
     login.show()

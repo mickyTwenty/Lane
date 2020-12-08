@@ -48,9 +48,16 @@
     </property>
     <addaction name="actionDownloadFiles"/>
    </widget>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="actionReviewCount"/>
+   </widget>
    <addaction name="menuRile"/>
    <addaction name="menuDB"/>
    <addaction name="menuDownload"/>
+   <addaction name="menuOptions"/>
   </widget>
   <action name="actionExit">
    <property name="text">
@@ -70,6 +77,11 @@
   <action name="actionDownloadFiles">
    <property name="text">
     <string>Image files</string>
+   </property>
+  </action>
+  <action name="actionReviewCount">
+   <property name="text">
+    <string>Review Count</string>
    </property>
   </action>
  </widget>

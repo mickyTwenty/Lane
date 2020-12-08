@@ -102,6 +102,20 @@ class DBHelper():
             lane_ids = cur.fetchall()
 
             for lane_id in lane_ids:
+                cur.execute("SELECT ticket_no, ticket_type, date1, lane_id, rego_result, confident, corrected_plate, image_path1, date_edited, attendance, rv.review, correct_plate FROM tbl_datas LEFT JOIN tbl_review_code rv ON tbl_datas.review_state = rv.id WHERE lane_id=:LANE_ID {} ORDER BY review_date DESC LIMIT {}".format(where_date, _App._Settings.REVIEW_COUNT), {"LANE_ID": lane_id[0]})
+                r = cur.fetchall()
+                data1.extend(r)
+
+                d = []
+                d.append(len(r))
+                d.append(len([item for item in r if item[10] == _App.REVIEW_STR[0]]))
+                d.append(len([item for item in r if item[10] == _App.REVIEW_STR[1]]))
+                d.append(len([item for item in r if item[10] == _App.REVIEW_STR[2]]))
+                d.append(len([item for item in r if item[10] == _App.REVIEW_STR[3]]))
+
+                cur.execute("SELECT review_date AS date FROM tbl_datas WHERE lane_id=:LANE_ID " + where_date + " ORDER BY review_date DESC LIMIT 1", {"LANE_ID": lane_id[0]})
+                d.append(cur.fetchone()[0])
+                '''
                 cur.execute("SELECT t1.cnt, t2.cnt, t3.cnt, t4.cnt, t5.cnt, t6.date FROM \
                     (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE lane_id=:LANE_ID " + where_date + ") as t1, \
                     (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE lane_id=:LANE_ID AND review_state == 0 " + where_date + ") as t2, \
@@ -110,15 +124,13 @@ class DBHelper():
                     (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE lane_id=:LANE_ID AND review_state == 3 " + where_date + ") as t5, \
                     (SELECT review_date AS date FROM tbl_datas WHERE lane_id=:LANE_ID " + where_date + " ORDER BY review_date DESC LIMIT 1) as t6", {"LANE_ID": lane_id[0]})
                 d = cur.fetchone()
+                '''
                 acc = 0
                 if d[1] != 0 or d[2] != 0:
                     acc = round(d[1] / (d[1] + d[2]) * 100, 2)
                 overall += acc
                 data.append([lane_id[1], '', '', lane_id[0], '{}%'.format(acc), d[0], d[1] + d[2], d[1], d[2], d[3], d[4], d[5]])
 
-                cur.execute("SELECT ticket_no, ticket_type, date1, lane_id, rego_result, confident, corrected_plate, image_path1, date_edited, attendance, rv.review, correct_plate FROM tbl_datas LEFT JOIN tbl_review_code rv ON tbl_datas.review_state = rv.id WHERE lane_id=:LANE_ID {} ORDER BY date1".format(where_date), {"LANE_ID": lane_id[0]})
-                d = cur.fetchall()
-                data1.extend(d)
             
             overall = overall / len(lane_ids)
 
@@ -144,22 +156,32 @@ class DBHelper():
             lane_name = lane_info[0]
             review_date = lane_info[1][:10]
 
-            where_clause = " lane_id={} and SUBSTR(review_date, 1, 10)='{}' ORDER BY review_date DESC LIMIT 250 ".format(lane_id, review_date)
+            where_clause = " lane_id={} and SUBSTR(review_date, 1, 10)='{}' ORDER BY review_date DESC LIMIT {} ".format(lane_id, review_date, _App._Settings.REVIEW_COUNT)
 
+            cur.execute("SELECT ticket_no, ticket_type, date1, lane_id, rego_result, confident, corrected_plate, image_path1, date_edited, attendance, rv.review, correct_plate FROM tbl_datas LEFT JOIN tbl_review_code rv ON tbl_datas.review_state = rv.id WHERE " + where_clause)
+            r = cur.fetchall()
+            data1.extend(r)
+
+            d = []
+            d.append(len(r))
+            d.append(len([item for item in r if item[10] == _App.REVIEW_STR[0]]))
+            d.append(len([item for item in r if item[10] == _App.REVIEW_STR[1]]))
+            d.append(len([item for item in r if item[10] == _App.REVIEW_STR[2]]))
+            d.append(len([item for item in r if item[10] == _App.REVIEW_STR[3]]))
+            '''
             cur.execute("SELECT t1.cnt, t2.cnt, t3.cnt, t4.cnt, t5.cnt FROM \
-                    (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE " + where_clause + ") as t1, \
-                    (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE review_state == 0 AND " + where_clause + ") as t2, \
-                    (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE review_state == 1 AND " + where_clause + ") as t3, \
-                    (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE review_state == 2 AND " + where_clause + ") as t4, \
-                    (SELECT COUNT(*) AS cnt FROM tbl_datas WHERE review_state == 3 AND " + where_clause + ") as t5")
+                    (SELECT * FROM tbl_datas WHERE " + where_clause + ") as t0, \
+                    (SELECT COUNT(*) AS cnt FROM t0 ) as t1, \
+                    (SELECT COUNT(*) AS cnt FROM t0 WHERE review_state == 0 ) as t2, \
+                    (SELECT COUNT(*) AS cnt FROM t0 WHERE review_state == 1 ) as t3, \
+                    (SELECT COUNT(*) AS cnt FROM t0 WHERE review_state == 2 ) as t4, \
+                    (SELECT COUNT(*) AS cnt FROM t0 WHERE review_state == 3 ) as t5")
             d = cur.fetchone()
+            '''
             if d[1] != 0 or d[2] != 0:
                 overall = round(d[1] / (d[1] + d[2]) * 100, 2)
             data.append([lane_name, '', '', lane_id, '{}%'.format(overall), d[0], d[1] + d[2], d[1], d[2], d[3], d[4], review_date])
 
-            cur.execute("SELECT ticket_no, ticket_type, date1, lane_id, rego_result, confident, corrected_plate, image_path1, date_edited, attendance, rv.review, correct_plate FROM tbl_datas LEFT JOIN tbl_review_code rv ON tbl_datas.review_state = rv.id WHERE " + where_clause)
-            d = cur.fetchall()
-            data1.extend(d)
 
         except Error as e:
             print(e)
