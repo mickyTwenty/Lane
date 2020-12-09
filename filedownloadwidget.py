@@ -1,11 +1,18 @@
 import os
 import zipfile
+import time
+from datetime import datetime, timedelta
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtCore import QDate
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
 from config import _App
 from dbhelper import _DB
+
+def hourly_it(start, finish):
+    while finish > start:
+        yield start
+        start = start + timedelta(hours=1)
 
 class FileDownloadWidget(QtWidgets.QDialog):
     def __init__(self, MainWidget):
@@ -36,6 +43,8 @@ class FileDownloadWidget(QtWidgets.QDialog):
         self.editDownload.setText(_App._Settings.DOWNLOAD_DIR)
         self.editDate.setDate(QDate.currentDate())
         self.loadServerDirectory()
+
+        self.timediff = time.altzone / (60 * 60)
 
     def on_btnBrowse_clicked(self):
         server_dir = QFileDialog.getExistingDirectory(self, 'Select a directory', _App._Settings.SERVER_DIR)
@@ -70,10 +79,28 @@ class FileDownloadWidget(QtWidgets.QDialog):
             return
 
         date = self.editDate.date().toString('yyyyMMdd')
+        date_from = datetime.strptime(date, '%Y%m%d')
+        date_to = date_from + timedelta(days=1)
+        if self.cmbHour.currentIndex() != 0:
+            hour = self.cmbHour.currentIndex() - 1
+            date = date + '_' + self.cmbHour.currentText()
+            date_from = date_from + timedelta(hours=hour)
+            date_to = date_from + timedelta(hours=1)
+
+        date_from = date_from + timedelta(hours=self.timediff)
+        date_to = date_to + timedelta(hours=self.timediff)
+
+        sub_paths = []
+        for hour in hourly_it(date_from, date_to):
+            sub_paths.append('/{}/{}'.format(hour.strftime('%Y%m%d'), hour.strftime('%H')))
+
+        '''
+        date = self.editDate.date().toString('yyyyMMdd')
         sub_path = '/{}'.format(date)
         if self.cmbHour.currentIndex() != 0:
             hour = self.cmbHour.currentText()
             sub_path += '/{}'.format(hour)
+        '''
 
         zip_filepath = '{}/download_{}.zip'.format(download_dir, date)
 
@@ -98,10 +125,11 @@ class FileDownloadWidget(QtWidgets.QDialog):
         QtWidgets.QApplication.processEvents()
         
         for i, lane in enumerate(checked_lanes):
-            path = '/{}{}'.format(lane, sub_path)
-            self.zipfolder(zip_file, server_dir + path, server_dir)
-            #zip_file.write(server_dir + path, path)
-            self.progressBar.setValue(i + 1)
+            for sub_path in sub_paths:
+                path = '/{}{}'.format(lane, sub_path)
+                self.zipfolder(zip_file, server_dir + path, server_dir)
+                #zip_file.write(server_dir + path, path)
+                self.progressBar.setValue(i + 1)
 
         zip_file.close()
         QMessageBox.information(self, 'Download', '{} successfully downloaded.'.format(zip_filepath))
